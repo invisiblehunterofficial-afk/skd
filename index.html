@@ -1,51 +1,37 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lead Fast - Mini App</title>
-    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Firebase Compatibility SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <style>
         :root {
             --primary: #0088cc;
             --primary-glow: rgba(0, 136, 204, 0.4);
             --accent: #00ffaa;
             --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(30, 41, 59, 0.75);
             --input-bg: rgba(15, 23, 42, 0.6);
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --danger: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --warning: #fbbf24;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             background-image: radial-gradient(circle at top right, rgba(0, 136, 204, 0.15), transparent 40%),
                               radial-gradient(circle at bottom left, rgba(0, 255, 170, 0.1), transparent 40%);
             color: var(--text);
+            margin: 0;
             padding: 16px;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 440px;
+            box-sizing: border-box;
         }
 
         .card {
@@ -61,13 +47,13 @@
 
         .brand-title {
             text-align: center;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             background: linear-gradient(135deg, #0088cc, #00ffaa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
+            margin: 0 0 20px 0;
         }
 
         .dashboard-header {
@@ -120,6 +106,7 @@
             border-radius: 10px;
             color: var(--text);
             font-size: 14px;
+            box-sizing: border-box;
             outline: none;
             transition: border-color 0.3s;
         }
@@ -140,29 +127,9 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 15px var(--primary-glow);
-            margin-top: 5px;
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-copy {
-            background: var(--primary);
-            color: #ffffff;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        .btn:active { transform: scale(0.98); }
 
         .btn-logout {
             background: rgba(239, 68, 68, 0.15);
@@ -179,12 +146,11 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text);
-            box-shadow: none;
-            margin-top: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            margin-top: 10px;
         }
 
         .divider {
@@ -215,9 +181,7 @@
             text-decoration: none;
         }
 
-        .forgot-link:hover {
-            color: var(--primary);
-        }
+        .forgot-link:hover { color: var(--primary); }
 
         .hidden { display: none !important; }
 
@@ -229,8 +193,8 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        .status-badge.active { background: rgba(0, 255, 170, 0.2); color: #00ffaa; border: 1px solid #00ffaa; }
-        .status-badge.pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+        .active { background: rgba(0, 255, 170, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .pending { background: rgba(251, 191, 36, 0.2); color: var(--warning); border: 1px solid var(--warning); }
 
         .ref-list-container {
             max-height: 180px;
@@ -251,16 +215,20 @@
             font-size: 13px;
         }
 
-        .ref-item:last-child {
-            border-bottom: none;
+        .notice-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            color: #fde047;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-
-    <!-- Auth View Container -->
+    <!-- Auth Section -->
     <div id="auth-view" class="card">
         <h2 class="brand-title">LEAD FAST</h2>
         
@@ -269,25 +237,22 @@
             <button id="tab-login" class="tab-btn" onclick="switchAuthTab('login')">Log In</button>
         </div>
 
-        <!-- Sign Up Form -->
         <div id="form-signup" class="form-group">
-            <input type="email" id="signup-email" placeholder="Email Address">
+            <input type="email" id="signup-email" placeholder="Gmail Address (@gmail.com only)">
             <input type="password" id="signup-pass" placeholder="Password">
             <input type="password" id="signup-confirm-pass" placeholder="Confirm Password">
             <input type="text" id="signup-ref-code" placeholder="Referral Code (Optional)">
-            <button class="btn" id="btn-signup" onclick="handleEmailSignUp()">Create Account</button>
+            <button class="btn" onclick="handleEmailSignUp()">Create Account</button>
         </div>
 
-        <!-- Login Form -->
         <div id="form-login" class="form-group hidden">
-            <input type="email" id="login-email" placeholder="Email Address">
+            <input type="email" id="login-email" placeholder="Gmail Address">
             <input type="password" id="login-pass" placeholder="Password">
-            <button class="btn" id="btn-login" onclick="handleEmailLogin()">Log In</button>
+            <button class="btn" onclick="handleEmailLogin()">Log In</button>
             <a href="#" class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</a>
         </div>
 
         <div class="divider">OR</div>
-        
         <div class="form-group" style="margin-bottom: 10px;">
             <input type="text" id="google-ref-code" placeholder="Referral Code for Google Sign-In (Optional)">
         </div>
@@ -297,142 +262,107 @@
         </button>
     </div>
 
-    <!-- Activation View -->
+    <!-- Activation Section -->
     <div id="activation-view" class="card hidden">
         <div class="dashboard-header">
-            <h2 style="margin:0; font-size: 18px;">Account Activation</h2>
+            <h3 style="margin:0;">Account Activation Required</h3>
             <button class="btn-logout" onclick="handleLogout()">Logout</button>
         </div>
-        <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">Activation Fee: <strong style="color:#00ffaa;">$1.60 USDT</strong></p>
-        <p style="font-size: 13px; margin-top: 5px;">Send payment to Binance UID: <code id="admin-binance-id" style="color: var(--primary);">123456789</code></p>
-        
-        <div class="form-group" style="margin-top: 15px;">
+        <p style="color: var(--text-muted); font-size: 14px;">Fee: <strong style="color:var(--accent);">$1.60 USDT</strong></p>
+        <p style="font-size: 13px;">Send payment to Official Binance UID: <code style="color: var(--primary);">123456789</code></p>
+        <div class="form-group">
             <input type="text" id="act-binance-uid" placeholder="Your Binance UID">
             <input type="text" id="act-txid" placeholder="Transaction ID (TxID)">
-            <button class="btn" id="btn-activate" onclick="submitActivation()">Submit Request</button>
+            <button class="btn" onclick="submitActivation()">Submit Activation Request</button>
         </div>
     </div>
 
     <!-- Main Dashboard -->
     <div id="dashboard-view" class="card hidden">
         <div class="dashboard-header">
-            <h2 class="brand-title" style="text-align:left; margin:0; font-size: 20px;">Dashboard</h2>
+            <h2 class="brand-title" style="text-align:left; margin:0;">LEAD FAST</h2>
             <button class="btn-logout" onclick="handleLogout()">Logout</button>
         </div>
         
-        <p style="margin-top: 10px; font-size: 14px;">Status: <span id="user-status" class="status-badge"></span></p>
-        
+        <p style="margin-top: 10px;">Status: <span id="user-status" class="status-badge"></span></p>
         <div style="background: var(--input-bg); padding: 15px; border-radius: 10px; margin: 15px 0;">
             <p style="margin: 0 0 5px 0; color: var(--text-muted); font-size: 12px;">MAIN BALANCE</p>
             <h1 style="margin: 0; color: var(--accent);">$<span id="main-balance">0.00</span></h1>
         </div>
+        <p>Active Referrals: <strong id="ref-count" style="color:var(--accent);">0</strong> / 5 minimum required for referral withdrawal</p>
         
-        <p style="font-size: 14px;">Active Referrals: <strong id="ref-count">0</strong></p>
-        
-        <!-- Referral Code Display -->
         <div style="background: var(--input-bg); padding: 12px; border-radius: 10px; margin-top: 10px; border: 1px dashed rgba(0, 255, 170, 0.3);">
-            <p style="margin: 0 0 5px 0; color: var(--text-muted); font-size: 12px;">YOUR REFERRAL CODE</p>
+            <p style="margin: 0 0 5px 0; color: var(--text-muted); font-size: 12px;">YOUR REFERRAL CODE ($1 PER ACTIVE REFERRAL)</p>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <code id="user-ref-code" style="color: var(--accent); font-size: 16px; font-weight: bold; letter-spacing: 1px;"></code>
-                <button class="btn-copy" id="copy-btn" onclick="copyReferralCode()">Copy</button>
+                <code id="user-ref-code" style="color: var(--accent); font-size: 16px; font-weight: bold;"></code>
+                <button style="background: var(--primary); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;" id="copy-btn" onclick="copyReferralCode()">Copy</button>
             </div>
         </div>
 
-        <!-- Active Referral List Section -->
         <div style="margin-top: 20px;">
-            <h4 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase;">Active Referred Users</h4>
-            <div class="ref-list-container" id="referred-users-list">
-                <div class="ref-item" style="color: var(--text-muted);">Loading referrals...</div>
-            </div>
+            <h4 style="margin: 0 0 8px 0; color: var(--text-muted); font-size: 13px;">REFERRED USERS</h4>
+            <div class="ref-list-container" id="referred-users-list"></div>
         </div>
 
-        <!-- Internal Email Transfer ($0 Fee) -->
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-        <h3 style="font-size: 16px;">Internal Email Transfer</h3>
-        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">Transfer Fee: $0.00 (Instant Free Internal Transfer)</p>
+        
+        <h3>Internal Email Transfer</h3>
+        <p style="font-size: 12px; color: var(--accent);">Transfer Fee: $0.00 | Instant Active Transfer</p>
         <div class="form-group">
-            <input type="email" id="transfer-email" placeholder="Recipient Email Address">
+            <input type="email" id="transfer-email" placeholder="Recipient Gmail Address">
             <input type="number" id="transfer-amount" placeholder="Amount ($)" step="0.01">
-            <button class="btn" id="btn-transfer" onclick="handleInternalTransfer()">Send Money</button>
+            <button class="btn" onclick="handleInternalTransfer()">Send Internally</button>
         </div>
 
-        <!-- External Binance Withdrawal -->
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-        <h3 style="font-size: 16px;">External Binance Withdrawal</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Fee: $1.60 | Min: $5.00 | Min 5 Active Referrals Required</p>
-        <div class="form-group">
-            <input type="number" id="withdraw-amount" placeholder="Amount ($)" step="0.01">
-            <input type="text" id="withdraw-binance" placeholder="Binance UID">
-            <button class="btn" id="btn-withdraw" onclick="submitWithdraw()">Submit Withdrawal</button>
+        
+        <h3>Binance Withdrawal</h3>
+        <div class="notice-box">
+            ⚡ <strong>Binance Withdrawal Upcoming!</strong><br>
+            Requirements: Min $5.00 balance | Min 5 Active Referrals | Fee: $1.60.
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+            <input type="number" id="withdraw-amount" placeholder="Amount ($)" disabled>
+            <input type="text" id="withdraw-binance" placeholder="Binance UID" disabled>
+            <button class="btn" style="opacity:0.5; cursor:not-allowed;" disabled>Binance Withdrawal Upcoming</button>
         </div>
     </div>
 
-</div>
-
 <script>
-    // --- 1. System Configuration (আপনার তথ্য বসান) ---
-    const CONFIG = {
-        ADMIN_BINANCE_UID: "123456789", // আপনার Binance UID
-        ACTIVATION_FEE: 1.60,
-        MIN_WITHDRAWAL: 5.00,
-        WITHDRAWAL_FEE: 1.60,
-        MIN_REFERRALS_FOR_WITHDRAW: 5
-    };
-
+    // --- FIREBASE CONFIGURATION ---
     const firebaseConfig = {
-  apiKey: "AIzaSyDAY6Y3AgbRA1kyAZ1J9emRp7Z1Q_WcGDc",
-  authDomain: "test-prptocle.firebaseapp.com",
-  projectId: "test-prptocle",
-  storageBucket: "test-prptocle.firebasestorage.app",
-  messagingSenderId: "647284229921",
-  appId: "1:647284229921:web:c573e4da3f40ce5b9b2060"    };
-
-    // Initialize Firebase
+  apiKey: "AIzaSyChdUY45Ma0hGInZg5vIklF0Chp5jE1OGk",
+  authDomain: "mini-app-293d2.firebaseapp.com",
+  databaseURL: "https://mini-app-293d2-default-rtdb.firebaseio.com",
+  projectId: "mini-app-293d2",
+  storageBucket: "mini-app-293d2.firebasestorage.app",
+  messagingSenderId: "497844777682",
+  appId: "1:497844777682:web:5779bd7c6f93921ac2730b",
+  measurementId: "G-BJQ9TX57DD"
+    };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
-
-    // Set Admin Binance ID in UI
-    document.getElementById('admin-binance-id').innerText = CONFIG.ADMIN_BINANCE_UID;
 
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
     }
 
-    // Helper: Generate Personal Referral Code
+    function isValidGmail(email) {
+        return /^[a-z0-9._%+-]+@gmail\.com$/.test(email.trim().toLowerCase());
+    }
+
     function generateReferralCode(uid) {
         return 'LF' + uid.substring(0, 6).toUpperCase();
     }
 
-    // Tab Switching Logic
     function switchAuthTab(tab) {
-        const signupBtn = document.getElementById('tab-signup');
-        const loginBtn = document.getElementById('tab-login');
-        const signupForm = document.getElementById('form-signup');
-        const loginForm = document.getElementById('form-login');
-
-        if (tab === 'signup') {
-            signupBtn.classList.add('active');
-            loginBtn.classList.remove('active');
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        } else {
-            loginBtn.classList.add('active');
-            signupBtn.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-        }
+        document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+        document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+        document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
+        document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
     }
 
-    // Dynamic UI View Control
-    function showView(viewId) {
-        ['auth-view', 'activation-view', 'dashboard-view'].forEach(id => {
-            document.getElementById(id).classList.add('hidden');
-        });
-        document.getElementById(viewId).classList.remove('hidden');
-    }
-
-    // Auth State Observer
     auth.onAuthStateChanged(user => {
         if (user) {
             checkUserStatus(user);
@@ -441,16 +371,20 @@
         }
     });
 
-    // Lookup Referrer UID by Personal Referral Code
+    function showView(viewId) {
+        ['auth-view', 'activation-view', 'dashboard-view'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(viewId).classList.remove('hidden');
+    }
+
     function getReferrerUidByCode(code, callback) {
         if (!code) return callback(null);
         const cleanCode = code.trim().toUpperCase();
-        
         db.ref('users').once('value', snapshot => {
             let foundUid = null;
             snapshot.forEach(child => {
-                const u = child.val();
-                if (u.referralCode && u.referralCode.toUpperCase() === cleanCode) {
+                if (child.val().referralCode === cleanCode) {
                     foundUid = child.key;
                 }
             });
@@ -458,63 +392,53 @@
         });
     }
 
-    // Email Sign Up Handler
     function handleEmailSignUp() {
         const email = document.getElementById('signup-email').value.trim();
         const pass = document.getElementById('signup-pass').value;
         const confirmPass = document.getElementById('signup-confirm-pass').value;
         const refCode = document.getElementById('signup-ref-code').value.trim();
-        const btn = document.getElementById('btn-signup');
 
-        if (!email || !pass) return alert('ইমেইল ও পাসওয়ার্ড প্রদান করুন।');
-        if (pass !== confirmPass) return alert('পাসওয়ার্ড মিলছে না।');
+        if (!isValidGmail(email)) return alert('Only valid @gmail.com addresses are allowed.');
+        if (pass !== confirmPass) return alert('Passwords do not match.');
 
-        btn.disabled = true;
         getReferrerUidByCode(refCode, referrerUid => {
             auth.createUserWithEmailAndPassword(email, pass).then(cred => {
                 const userRefCode = generateReferralCode(cred.user.uid);
                 db.ref('users/' + cred.user.uid).set({
-                    email: email,
+                    email: email.toLowerCase(),
                     status: 'pending',
                     balance: 0.00,
                     referrals: 0,
                     referralCode: userRefCode,
                     referredBy: referrerUid || null
                 });
-            }).catch(err => {
-                alert(err.message);
-                btn.disabled = false;
-            });
+            }).catch(err => alert(err.message));
         });
     }
 
-    // Email Login Handler
     function handleEmailLogin() {
         const email = document.getElementById('login-email').value.trim();
         const pass = document.getElementById('login-pass').value;
-        const btn = document.getElementById('btn-login');
-
-        if (!email || !pass) return alert('ইমেইল ও পাসওয়ার্ড প্রদান করুন।');
-
-        btn.disabled = true;
-        auth.signInWithEmailAndPassword(email, pass).catch(err => {
-            alert(err.message);
-            btn.disabled = false;
-        });
+        if (!isValidGmail(email)) return alert('Please enter a valid @gmail.com address.');
+        auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
     }
 
-    // Google Sign In Handler
     function handleGoogleSignIn() {
         const refCode = document.getElementById('google-ref-code').value.trim();
         const provider = new firebase.auth.GoogleAuthProvider();
 
         getReferrerUidByCode(refCode, referrerUid => {
             auth.signInWithPopup(provider).then(cred => {
+                if (!isValidGmail(cred.user.email)) {
+                    auth.signOut();
+                    return alert('Only official @gmail.com accounts are allowed.');
+                }
+
                 db.ref('users/' + cred.user.uid).once('value', snapshot => {
                     if (!snapshot.exists()) {
                         const userRefCode = generateReferralCode(cred.user.uid);
                         db.ref('users/' + cred.user.uid).set({
-                            email: cred.user.email,
+                            email: cred.user.email.toLowerCase(),
                             status: 'pending',
                             balance: 0.00,
                             referrals: 0,
@@ -527,26 +451,23 @@
         });
     }
 
-    // Forgot Password Handler
     function handleForgotPassword() {
-        const email = document.getElementById('login-email').value.trim() || document.getElementById('signup-email').value.trim();
-        if (!email) return alert('পাসওয়ার্ড রিসেট করতে ইমেইল প্রদান করুন।');
-        auth.sendPasswordResetEmail(email).then(() => alert('পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে।')).catch(err => alert(err.message));
+        const email = document.getElementById('login-email').value.trim();
+        if (!isValidGmail(email)) return alert('Enter your @gmail.com address to reset password.');
+        auth.sendPasswordResetEmail(email).then(() => alert('Reset email sent!')).catch(err => alert(err.message));
     }
 
-    // Logout Handler
     function handleLogout() {
-        auth.signOut().then(() => showView('auth-view')).catch(err => alert(err.message));
+        auth.signOut().then(() => showView('auth-view'));
     }
 
-    // User Status Observer Logic
     function checkUserStatus(user) {
         db.ref('users/' + user.uid).on('value', snapshot => {
             const data = snapshot.val();
             if (!data) return;
-            
+
             if (data.status === 'blocked') {
-                alert('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে।');
+                alert('Your account is blocked. Contact support.');
                 auth.signOut();
                 return;
             }
@@ -559,201 +480,84 @@
                 document.getElementById('user-status').className = 'status-badge active';
                 document.getElementById('main-balance').innerText = (data.balance || 0).toFixed(2);
                 document.getElementById('ref-count').innerText = data.referrals || 0;
-                
-                const personalCode = data.referralCode || generateReferralCode(user.uid);
-                document.getElementById('user-ref-code').innerText = personalCode;
+                document.getElementById('user-ref-code').innerText = data.referralCode || generateReferralCode(user.uid);
 
                 loadReferredUsers(user.uid);
             }
         });
     }
 
-    // Copy Referral Code Function
     function copyReferralCode() {
-        const codeText = document.getElementById('user-ref-code').innerText;
-        if (!codeText) return;
-        
-        navigator.clipboard.writeText(codeText).then(() => {
-            const btn = document.getElementById('copy-btn');
-            btn.innerText = 'Copied!';
-            btn.style.background = 'var(--accent)';
-            btn.style.color = '#000000';
-            
-            setTimeout(() => {
-                btn.innerText = 'Copy';
-                btn.style.background = 'var(--primary)';
-                btn.style.color = '#ffffff';
-            }, 2000);
-        }).catch(() => alert('কোড কপি করা যায়নি।'));
+        const code = document.getElementById('user-ref-code').innerText;
+        navigator.clipboard.writeText(code).then(() => alert('Referral code copied!'));
     }
 
-    // Load Active Referred Users
     function loadReferredUsers(currentUid) {
         db.ref('users').orderByChild('referredBy').equalTo(currentUid).on('value', snapshot => {
-            const listContainer = document.getElementById('referred-users-list');
-            listContainer.innerHTML = '';
-
-            let activeCount = 0;
-
+            const container = document.getElementById('referred-users-list');
+            container.innerHTML = '';
             if (!snapshot.exists()) {
-                listContainer.innerHTML = '<div class="ref-item" style="color: var(--text-muted);">কোনো রেফারাল ব্যবহারকারী পাওয়া যায়নি।</div>';
+                container.innerHTML = '<div class="ref-item" style="color:var(--text-muted)">No referrals yet.</div>';
                 return;
             }
-
             snapshot.forEach(child => {
                 const u = child.val();
-                if (u.status === 'active') {
-                    activeCount++;
-                    listContainer.innerHTML += `
-                        <div class="ref-item">
-                            <span>${u.email}</span>
-                            <span class="status-badge active" style="font-size: 9px; padding: 2px 6px;">Active</span>
-                        </div>
-                    `;
-                }
+                container.innerHTML += `
+                    <div class="ref-item">
+                        <span>${u.email}</span>
+                        <span class="status-badge ${u.status}">${u.status.toUpperCase()}</span>
+                    </div>`;
             });
-
-            if (activeCount === 0) {
-                listContainer.innerHTML = '<div class="ref-item" style="color: var(--text-muted);">এখনও কোনো অ্যাক্টিভ রেফারাল ইউজার নেই।</div>';
-            }
         });
     }
 
-    // Activation Request Submission
     function submitActivation() {
         const uid = document.getElementById('act-binance-uid').value.trim();
         const txid = document.getElementById('act-txid').value.trim();
-        const btn = document.getElementById('btn-activate');
+        if (!uid || !txid) return alert('Please enter Binance UID and TxID.');
 
-        if (!uid || !txid) return alert('সকল ঘর পূরণ করুন।');
-
-        btn.disabled = true;
         const user = auth.currentUser;
         db.ref('activation_requests/' + user.uid).set({
             email: user.email,
             binanceUID: uid,
             txid: txid,
-            amount: CONFIG.ACTIVATION_FEE,
+            amount: 1.60,
+            status: 'pending',
             timestamp: Date.now()
-        }).then(() => {
-            alert('অ্যাক্টিভেশন রিকোয়েস্ট পাঠানো হয়েছে। অ্যাডমিন পর্যালোচনার পর অ্যাপ্রুভ করবেন।');
-            btn.disabled = false;
-        }).catch(err => {
-            alert(err.message);
-            btn.disabled = false;
-        });
+        }).then(() => alert('Activation request submitted! Admin will verify manually.'));
     }
 
-    // Transaction-Based Internal Email Transfer (Prevents Race Conditions)
     function handleInternalTransfer() {
         const targetEmail = document.getElementById('transfer-email').value.trim().toLowerCase();
         const amount = parseFloat(document.getElementById('transfer-amount').value);
         const sender = auth.currentUser;
-        const btn = document.getElementById('btn-transfer');
 
-        if (!targetEmail || isNaN(amount) || amount <= 0) {
-            return alert('সঠিক ইমেইল এবং ব্যালেন্স টাইপ করুন।');
-        }
+        if (!isValidGmail(targetEmail)) return alert('Valid recipient @gmail.com required.');
+        if (isNaN(amount) || amount <= 0) return alert('Enter a valid amount.');
+        if (targetEmail === sender.email.toLowerCase()) return alert('Cannot transfer to yourself.');
 
-        if (targetEmail === sender.email.toLowerCase()) {
-            return alert('নিজের অ্যাকাউন্টে ফান্ড ট্রান্সফার করতে পারবেন না।');
-        }
+        db.ref('users/' + sender.uid).once('value', senderSnap => {
+            const senderData = senderSnap.val();
+            if ((senderData.balance || 0) < amount) return alert('Insufficient balance.');
 
-        btn.disabled = true;
+            db.ref('users').once('value', usersSnap => {
+                let recipientUid = null;
+                let recipientData = null;
 
-        // Step 1: Find Recipient UID by Email
-        db.ref('users').once('value', usersSnap => {
-            let recipientUid = null;
+                usersSnap.forEach(child => {
+                    if (child.val().email === targetEmail) {
+                        recipientUid = child.key;
+                        recipientData = child.val();
+                    }
+                });
 
-            usersSnap.forEach(childSnap => {
-                const u = childSnap.val();
-                if (u.email && u.email.toLowerCase() === targetEmail) {
-                    recipientUid = childSnap.key;
-                }
-            });
+                if (!recipientUid) return alert('Recipient email not found.');
+                if (recipientData.status !== 'active') return alert('Recipient account is not active.');
 
-            if (!recipientUid) {
-                btn.disabled = false;
-                return alert('গ্রাহকের ইমেইল পাওয়া যায়নি।');
-            }
+                db.ref('users/' + sender.uid + '/balance').set(senderData.balance - amount);
+                db.ref('users/' + recipientUid + '/balance').set((recipientData.balance || 0) + amount);
 
-            // Step 2: Atomic Balance Deduction using Transaction
-            db.ref('users/' + sender.uid + '/balance').transaction(currentBalance => {
-                if ((currentBalance || 0) >= amount) {
-                    return currentBalance - amount;
-                } else {
-                    return; // Abort transaction if insufficient funds
-                }
-            }, (error, committed) => {
-                if (error) {
-                    alert('ট্রান্সফার ব্যর্থ হয়েছে।');
-                    btn.disabled = false;
-                } else if (!committed) {
-                    alert('পর্যাপ্ত ব্যালেন্স নেই।');
-                    btn.disabled = false;
-                } else {
-                    // Step 3: Add Balance to Recipient
-                    db.ref('users/' + recipientUid + '/balance').transaction(recBalance => {
-                        return (recBalance || 0) + amount;
-                    }).then(() => {
-                        document.getElementById('transfer-email').value = '';
-                        document.getElementById('transfer-amount').value = '';
-                        alert(`সফলভাবে $${amount.toFixed(2)} পাঠানো হয়েছে ${targetEmail}-এ`);
-                        btn.disabled = false;
-                    });
-                }
-            });
-        });
-    }
-
-    // Transaction-Based External Binance Withdrawal
-    function submitWithdraw() {
-        const amount = parseFloat(document.getElementById('withdraw-amount').value);
-        const binanceUID = document.getElementById('withdraw-binance').value.trim();
-        const user = auth.currentUser;
-        const btn = document.getElementById('btn-withdraw');
-
-        if (isNaN(amount) || !binanceUID) return alert('সকল ঘর সঠিকভাবে পূরণ করুন।');
-        if (amount < CONFIG.MIN_WITHDRAWAL) return alert(`সর্বনিম্ন উইথড্রয়াল পরিমাণ $${CONFIG.MIN_WITHDRAWAL.toFixed(2)}`);
-
-        btn.disabled = true;
-
-        db.ref('users/' + user.uid).once('value', snapshot => {
-            const data = snapshot.val();
-            const totalRequired = amount + CONFIG.WITHDRAWAL_FEE;
-
-            if ((data.referrals || 0) < CONFIG.MIN_REFERRALS_FOR_WITHDRAW) {
-                btn.disabled = false;
-                return alert(`উইথড্র করতে সর্বনিম্ন ${CONFIG.MIN_REFERRALS_FOR_WITHDRAW} টি সক্রিয় রেফারাল প্রয়োজন।`);
-            }
-
-            // Deduct Balance Atomically
-            db.ref('users/' + user.uid + '/balance').transaction(currentBalance => {
-                if ((currentBalance || 0) >= totalRequired) {
-                    return currentBalance - totalRequired;
-                } else {
-                    return; // Abort if insufficient balance
-                }
-            }, (error, committed) => {
-                if (error || !committed) {
-                    alert('পর্যাপ্ত ব্যালেন্স নেই (ফি সহ)।');
-                    btn.disabled = false;
-                } else {
-                    // Log Withdraw Request
-                    db.ref('withdraw_requests').push({
-                        uid: user.uid,
-                        email: user.email,
-                        binanceUID: binanceUID,
-                        amount: amount,
-                        fee: CONFIG.WITHDRAWAL_FEE,
-                        timestamp: Date.now()
-                    }).then(() => {
-                        document.getElementById('withdraw-amount').value = '';
-                        document.getElementById('withdraw-binance').value = '';
-                        alert('উইথড্রয়াল রিকোয়েস্ট সাবমিট করা হয়েছে।');
-                        btn.disabled = false;
-                    });
-                }
+                alert(`Successfully transferred $${amount.toFixed(2)} to ${targetEmail}`);
             });
         });
     }
